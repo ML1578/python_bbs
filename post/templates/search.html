@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block container %}
+    <div class="list-group">
+    {% for post in posts %}
+        <a class="list-group-item" href="/post/read/?post_id={{ post.id }}">
+            <span class="text-info">{{ post.created | date:"Y-m-d H:i:s" }}</span>
+            <strong>{{ post.title }}</strong>
+        </a>
+    {% endfor %}
+    </div>
+{% endblock %}
