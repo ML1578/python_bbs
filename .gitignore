@@ -1,0 +1,8 @@
+*.pyc
+*.qlite3
+.idea
+__pycache__
+*.log
+.ven
+medias/*
+
