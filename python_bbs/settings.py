@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+from urllib.parse import urlencode
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -60,6 +61,20 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'python_bbs.wsgi.application'
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+
+# Cache
+CACHES = {
+    "default":{
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/3",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "PICKLE_VERSION": -1,
+        }
+    }
+}
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
@@ -112,3 +127,34 @@ STATICFILES_DIR = [
 
 MEDIA_ROOT = 'medias'
 MEDIA_URL = '/medias/'
+
+# WeiBo OAuth
+WB_APP_KEY = '1310374555'
+WB_APP_SECRET = 'e5cf3ddc5077ba6f038013003c29550'
+WB_CALLBACK = 'http://bbs.ceamile.org/weibo/callback/'
+
+# auth api
+WB_AUTH_API = 'https://api.weibo.com/oauth2/authorize'
+WB_AUTH_ARGS = {
+    'client_id': WB_APP_KEY,
+    'redirect_uri': WB_CALLBACK,
+    'response_type': 'code',
+}
+WB_AUTH_URL = '%s?%s' % (WB_AUTH_API, urlencode(WB_AUTH_ARGS))
+
+# access token api
+WB_ACCESS_TOKEN_API = 'https://api.weibo.com/oauth2/access_token'
+WB_ACCESS_TOKEN_ARGS = {
+    'client_id': WB_APP_KEY,
+    'client_secret': WB_APP_SECRET,
+    'redirect_uri': WB_CALLBACK,
+    'grant_type': 'authorization_code',
+    'code': None,
+}
+
+# users show api
+WB_USER_SHOW_API = 'https://api.weibo.com/2/users/show.json'
+WB_USER_SHOW_ARGS = {
+    'access_token': None,
+    'uid': None,
+}

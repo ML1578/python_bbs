@@ -1,5 +1,6 @@
 from math import ceil  # 向上取整
 
+from django.core.cache import cache
 from django.shortcuts import render, redirect
 
 from post.models import Post
@@ -35,6 +36,9 @@ def edit_post(request):
         post.title = request.POST.get('title')
         post.content = request.POST.get('content')
         post.save()
+        # 更新缓存
+        key = 'Post-%s' % post_id
+        cache.set(key, post)
         return redirect('/post/read/?post_id=%s' % post.id)
     else:
         post_id = int(request.GET.get('post_id'))
@@ -43,9 +47,16 @@ def edit_post(request):
 
 
 # 阅读帖子
+
 def read_post(request):
     post_id = int(request.GET.get('post_id'))
-    post = Post.objects.get(pk=post_id)
+    # 缓存
+    key = 'Post-%s' % post_id
+    post = cache.get(key)
+    if post is None:
+        post = Post.objects.get(pk=post_id)
+        cache.set(key, post)
+
     return render(request, 'read_post.html', {'post': post})
 
 

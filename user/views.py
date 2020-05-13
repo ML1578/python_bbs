@@ -1,8 +1,10 @@
+from django.conf import settings
 from django.shortcuts import render, redirect
 from django.contrib.auth.hashers import make_password, check_password
 
 from user.models import User
 from user.forms import RegisterForm
+from user.helper import get_access_token, get_wb_user_info
 
 
 def register(request):
@@ -32,7 +34,8 @@ def login(request):
         try:
             user = User.objects.get(nickname=nickname)
         except User.DoesNotExist:
-            return render(request, 'login.html', {'error', '用户不存在'})
+            return render(request, 'login.html',
+                          {'error', '用户不存在', 'auth_url', settings.WB_AUTH_URL})
 
         # 验证密码
         if check_password(password, user.password):
@@ -41,9 +44,10 @@ def login(request):
             request.session['avatar'] = user.icon.url
             return redirect('/user/info/')
         else:
-            return render(request, 'login.html', {'error', '用户密码错误'})
+            return render(request, 'login.html',
+                          {'error', '用户密码错误', 'auth_url', settings.WB_AUTH_URL})
     else:
-        return render(request, 'login.html', )
+        return render(request, 'login.html', {'auth_url', settings.WB_AUTH_URL})
 
 
 def logout(request):
@@ -55,3 +59,27 @@ def user_info(request):
     uid = request.session.get('uid')
     user = User.objects.get(id=uid)
     return render(request, 'user_info.html', {'user': user})
+
+
+def weibo_callback(request):
+    code = request.GET.get('code')
+
+    # 获取 access_token
+    access_token, uid = get_access_token(code)
+    if access_token is not None:
+        # 获取微博用户信息
+        nickname, plt_icon = get_wb_user_info(access_token, uid)
+        if nickname is not None:
+            user, created = User.objects.get_or_create(nickname=nickname)
+            if created:
+                user.plt_icon = plt_icon
+                user.save()
+
+                # 记录登录状态
+            request.session['uid'] = user.id
+            request.session['nickname'] = user.nickname
+            request.session['avatar'] = user.avatar
+            return redirect('/post/info/')
+
+    return render(request, 'login.html',
+                  {'error', '微博访问异常', 'auth_url', settings.WB_AUTH_URL})

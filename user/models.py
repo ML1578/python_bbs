@@ -10,5 +10,10 @@ class User(models.Model):
     nickname = models.CharField(max_length=16, unique=True)
     password = models.CharField(max_length=128)
     icon = models.ImageField()
+    plt_icon = models.CharField(max_length=256, blank=True) # 第三方平台用户的头像
     age = models.IntegerField(default=18)
     sex = models.CharField(max_length=8, choices=SEX)
+
+    @property
+    def get_avatar(self):
+        return self.icon.url if self.icon else self.plt_icon
