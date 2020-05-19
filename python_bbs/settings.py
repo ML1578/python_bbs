@@ -76,6 +76,13 @@ CACHES = {
     }
 }
 
+
+REDIS = {
+    'host': 'localhost',
+    'port': 6379,
+    'db': 3
+}
+
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 

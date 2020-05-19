@@ -1,12 +1,15 @@
 from math import ceil  # 向上取整
 
-from django.core.cache import cache
 from django.shortcuts import render, redirect
 
 from post.models import Post
+from post.helper import page_cache
+from post.helper import read_counter
+from post.helper import get_top_n
 
 
 # 主页
+@page_cache(30)
 def post_list(request):
     page = int(request.GET.get('page', 1))  # 获取当前页
     per_page = 10  # 每一页10篇帖子
@@ -29,6 +32,7 @@ def create_post(request):
 
 
 # 修改帖子
+
 def edit_post(request):
     if request.method == 'POST':
         post_id = int(request.POST.get('post_id'))
@@ -36,9 +40,6 @@ def edit_post(request):
         post.title = request.POST.get('title')
         post.content = request.POST.get('content')
         post.save()
-        # 更新缓存
-        key = 'Post-%s' % post_id
-        cache.set(key, post)
         return redirect('/post/read/?post_id=%s' % post.id)
     else:
         post_id = int(request.GET.get('post_id'))
@@ -47,16 +48,11 @@ def edit_post(request):
 
 
 # 阅读帖子
-
+@read_counter
+@page_cache(10)
 def read_post(request):
     post_id = int(request.GET.get('post_id'))
-    # 缓存
-    key = 'Post-%s' % post_id
-    post = cache.get(key)
-    if post is None:
-        post = Post.objects.get(pk=post_id)
-        cache.set(key, post)
-
+    post = Post.objects.get(pk=post_id)
     return render(request, 'read_post.html', {'post': post})
 
 
@@ -71,3 +67,8 @@ def search(request):
     keyword = request.POST.get('keyword')
     posts = Post.objects.filter(content__contains=keyword)
     return render(request, 'search.html', {'posts': posts})
+
+
+def top10(request):
+    rank_data = get_top_n(10)
+    return render(request, 'top_10.html', {'rank_data': rank_data})
