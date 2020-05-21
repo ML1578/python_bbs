@@ -58,4 +58,5 @@ def get_top_n(num):
     posts = Post.objects.in_bulk(post_id_list)
     for item in cleaned:
         item[0] = posts[item[0]]
+
     return cleaned
