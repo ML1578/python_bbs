@@ -4,8 +4,7 @@ from django.contrib.auth.hashers import make_password, check_password
 
 from user.models import User
 from user.forms import RegisterForm
-from user.helper import get_access_token, get_wb_user_info
-
+from user.helper import get_access_token, get_wb_user_info, login_required
 
 def register(request):
     if request.method == 'POST':
@@ -35,7 +34,7 @@ def login(request):
             user = User.objects.get(nickname=nickname)
         except User.DoesNotExist:
             return render(request, 'login.html',
-                          {'error', '用户不存在', 'auth_url', settings.WB_AUTH_URL})
+                          {'error': '用户不存在', 'auth_url': settings.WB_AUTH_URL})
 
         # 验证密码
         if check_password(password, user.password):
@@ -45,9 +44,9 @@ def login(request):
             return redirect('/user/info/')
         else:
             return render(request, 'login.html',
-                          {'error', '用户密码错误', 'auth_url', settings.WB_AUTH_URL})
+                          {'error': '用户密码错误', 'auth_url': settings.WB_AUTH_URL})
     else:
-        return render(request, 'login.html', {'auth_url', settings.WB_AUTH_URL})
+        return render(request, 'login.html', {'auth_url': settings.WB_AUTH_URL})
 
 
 def logout(request):
@@ -55,6 +54,7 @@ def logout(request):
     return redirect('/user/login/')
 
 
+@login_required
 def user_info(request):
     uid = request.session.get('uid')
     user = User.objects.get(id=uid)

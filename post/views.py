@@ -6,6 +6,7 @@ from post.models import Post
 from post.helper import page_cache
 from post.helper import read_counter
 from post.helper import get_top_n
+from user.helper import login_required
 
 
 # 主页
@@ -15,24 +16,26 @@ def post_list(request):
     per_page = 10  # 每一页10篇帖子
     start = (page - 1) * per_page  # 开始的文章
     end = start + per_page
-    posts = Post.objects.all()[start:end]  # 每页显示的文章
+    posts = Post.objects.all().order_by('-id')[start:end]  # 每页显示的文章
     totale = Post.objects.all().count()  # 总文章数   django的orm中的指令，要熟悉d
     pages = ceil(totale / per_page)  # 总页数
     return render(request, 'post_list.html', {'posts': posts}, {'pages': range(pages)})
 
 
 # 发贴
+@login_required
 def create_post(request):
     if request.method == 'POST':
+        uid = ''
         title = request.POST.get('title')
         content = request.POST.get('content')
-        post = Post.objects.create(title=title, content=content)
+        post = Post.objects.create(uid= uid, title=title, content=content)
         return redirect('/post/read/?post_id=%s' % post.id)
     return render(request, 'create_post.html')
 
 
 # 修改帖子
-
+@login_required
 def edit_post(request):
     if request.method == 'POST':
         post_id = int(request.POST.get('post_id'))
@@ -57,6 +60,7 @@ def read_post(request):
 
 
 # 删除帖子
+@login_required
 def delete_post(request):
     post_id = int(request.GET.get('post_id'))
     Post.objects.get(pk=post_id).delete()

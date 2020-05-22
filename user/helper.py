@@ -1,5 +1,6 @@
 import requests
 from django.conf import settings
+from django.shortcuts import redirect
 
 
 def get_access_token(authorization_code):
@@ -27,3 +28,13 @@ def get_wb_user_info(access_token, uid):
         return nickname, icon
     else:
         return None, None
+
+
+def login_required(view_func):
+    def check(request):
+        # 检查 Session 里是否有 uid
+        if 'uid' in request.session:
+            return view_func(request)
+        else:
+            return redirect('/user/login/')
+    return check
