@@ -20,7 +20,7 @@
         <div>
             <strong>Tags:</strong>
             {% for tag in post.tags %}
-                <a href="/post/tag/?tag_id={{ tag.id }}"></a>
+                <a href="/post/tag/?tag_id={{ tag.id }}">{{ tag.name }}</a>
             {% endfor %}
         </div>
     {% endif %}
